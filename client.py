@@ -1,45 +1,35 @@
-import time
 import socket
-import threading
+import pickle
+import os
+from threading import Thread
+import time
 
-tLock = threading.Lock()
-shutdown = False
+s = socket.socket()
+s.connect(('52.15.62.13', 10354))
 
 
-def receving(name, sock):
-    while not shutdown:
-        try:
-            tLock.acquire()
-            while True:
-                data, addr = sock.recvfrom(1024)
-                print(str(data))
-        except:
-            pass
-        finally:
-            tLock.release()
+def receive():
 
-host = '127.0.0.1'
-port = 0
+    while True:
 
-server = ('127.0.0.1', 5000)
+        data = s.recv(8192)
+        data = pickle.loads(data)
+        os.system("cls")
+        for item in data:
+            print(item)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host, port))
-s.setblocking(0)
 
-rT = threading.Thread(target=receving, args=("RecvThread", s))
-rT.start()
+username = input("Enter your username: ")
+Thread(target=receive).start()
 
-alias = input("Name: ")
-message = input(alias + "-> ")
-while message != 'q':
-    if message != '':
-        s.sendto(str.encode(alias + ": " + message), server)
-    tLock.acquire()
-    message = input(alias + "-> ")
-    tLock.release()
-    time.sleep(0.2)
+s.send(username.encode())
+time.sleep(0.1)
+while True:
 
-shudown = True
-rT.join()
-s.close()
+    msg = input(">>")
+
+    if not msg:
+        break
+    s.send(msg.encode())
+    time.sleep(0.1)
+    
